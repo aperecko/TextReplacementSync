@@ -20,7 +20,7 @@ ExitApp
 
 GenerateReplacements() {
     if !FileExist(JsonPath) {
-        MsgBox("JSON file not found!`n`nExpected: " JsonPath "`n`nMake sure text-replacements.json is in the same folder as this script.", "Error", "Icon16")
+        MsgBox("JSON file not found!`n`nExpected: " JsonPath "`n`nMake sure text-replacements.json is in the same folder as this script.", "Error", 16)
         return
     }
     
@@ -60,13 +60,13 @@ GenerateReplacements() {
         FileAppend(script, ReplacementsFile, "UTF-8")
         
         ; Show success message
-        MsgBox("✅ Success!`n`n" count " text replacements generated`n`nOutput: " ReplacementsFile "`n`nThe shortcuts script will now start automatically.", "Text Replacement Sync", "Icon64 T5")
+        MsgBox("✅ Success!`n`n" count " text replacements generated`n`nOutput: " ReplacementsFile "`n`nThe shortcuts script will now start automatically.", "Text Replacement Sync", 64)
         
         ; Start the replacements script
         Run(ReplacementsFile)
         
     } catch as err {
-        MsgBox("Error: " err.Message, "Text Replacement Sync", "Icon16")
+        MsgBox("Error: " err.Message, "Text Replacement Sync", 16)
     }
 }
 
