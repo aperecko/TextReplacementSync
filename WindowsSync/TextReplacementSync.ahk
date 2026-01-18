@@ -38,8 +38,8 @@ GenerateReplacements() {
         script .= "; ============================================`n`n"
         
         script .= "#Requires AutoHotkey v2.0`n"
-        script .= "#Hotstring EndChars -()[]{}:;'" . '"/\,.?!' . "`n`s`t`n"
-        script .= "#Hotstring O  ; Omit ending character`n"
+        script .= "#Hotstring EndChars -()[]{}:;'`"/\,.?!`n`s`t`n"
+        script .= "#Hotstring O`n"  ; Omit ending character
         script .= "#SingleInstance Force`n`n"
         
         ; Add replacements
