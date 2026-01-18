@@ -1,0 +1,91 @@
+{
+  "exportDate": "2026-01-17T21:49:58.919561",
+  "replacements": [
+    {
+      "shortcut": "dodo",
+      "phrase": "\\Ud83e\\Udda4",
+      "timestamp": "2026-01-17T21:49:58.919496"
+    },
+    {
+      "shortcut": "ssresume",
+      "phrase": "I'm working on SolidStack - read /Users/test/Projects/solidstack/context/QUICK-START.txt and start the session.",
+      "timestamp": "2026-01-17T21:49:58.919532"
+    },
+    {
+      "shortcut": "omw",
+      "phrase": "On my way!",
+      "timestamp": "2026-01-17T21:49:58.919534"
+    },
+    {
+      "shortcut": "omw",
+      "phrase": "On my way",
+      "timestamp": "2026-01-17T21:49:58.919536"
+    },
+    {
+      "shortcut": "cum",
+      "phrase": "\\Ud83d\\Udca6\\Ud83e\\Udd72\\Ud83d\\Ude05\\Ud83d\\Ude13",
+      "timestamp": "2026-01-17T21:49:58.919537"
+    },
+    {
+      "shortcut": "lx",
+      "phrase": "\\Ud83d\\Udd26",
+      "timestamp": "2026-01-17T21:49:58.919539"
+    },
+    {
+      "shortcut": "bub",
+      "phrase": "\\Ud83e\\Udee7",
+      "timestamp": "2026-01-17T21:49:58.919540"
+    },
+    {
+      "shortcut": "cg",
+      "phrase": "ChatGPT",
+      "timestamp": "2026-01-17T21:49:58.919540"
+    },
+    {
+      "shortcut": "chatg",
+      "phrase": "chatGPT",
+      "timestamp": "2026-01-17T21:49:58.919541"
+    },
+    {
+      "shortcut": "k0m",
+      "phrase": "K0M 1S0",
+      "timestamp": "2026-01-17T21:49:58.919542"
+    },
+    {
+      "shortcut": "adr",
+      "phrase": "237 Highland St",
+      "timestamp": "2026-01-17T21:49:58.919543"
+    },
+    {
+      "shortcut": "phn",
+      "phrase": "705 854 2326",
+      "timestamp": "2026-01-17T21:49:58.919544"
+    },
+    {
+      "shortcut": "eml",
+      "phrase": "adamperecko@gmail.com",
+      "timestamp": "2026-01-17T21:49:58.919545"
+    },
+    {
+      "shortcut": "emlw",
+      "phrase": "adam@mysolidstate.ca",
+      "timestamp": "2026-01-17T21:49:58.919546"
+    },
+    {
+      "shortcut": "wn",
+      "phrase": "What should I do next?",
+      "timestamp": "2026-01-17T21:49:58.919547"
+    },
+    {
+      "shortcut": "wphn",
+      "phrase": "7054573962",
+      "timestamp": "2026-01-17T21:49:58.919548"
+    },
+    {
+      "shortcut": "emll",
+      "phrase": "info@mysolidstate.ca",
+      "timestamp": "2026-01-17T21:49:58.919549"
+    }
+  ],
+  "version": "1.0"
+}

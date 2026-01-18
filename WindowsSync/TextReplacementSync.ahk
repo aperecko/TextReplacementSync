@@ -1,8 +1,8 @@
 ; =============================================================================
-; Text Replacement Sync - Standalone AutoHotkey Version
+; Text Replacement Sync - One-Time Generator
 ; =============================================================================
-; This script watches the iCloud JSON file and automatically updates
-; text replacements without needing any .NET SDK or compilation.
+; This script reads the JSON file ONCE and generates the AutoHotkey shortcuts
+; Then exits. No background monitoring needed.
 ;
 ; Requirements: AutoHotkey v2.0+ (download from autohotkey.com)
 ; =============================================================================
@@ -11,61 +11,16 @@
 #SingleInstance Force
 
 ; Configuration
-global JsonPath := A_MyDocuments "\..\iCloudDrive\text-replacements.json"
+global JsonPath := A_ScriptDir "\text-replacements.json"
 global ReplacementsFile := A_MyDocuments "\TextReplacements.ahk"
-global CheckInterval := 5000  ; Check every 5 seconds
-global LastModified := ""
-global TrayIcon := A_ScriptDir "\icon.ico"
 
-; Setup System Tray
-TraySetIcon(FileExist(TrayIcon) ? TrayIcon : A_WinDir "\System32\shell32.dll", 174)
-A_IconTip := "Text Replacement Sync`nWatching for changes..."
+; Run once and exit
+GenerateReplacements()
+ExitApp
 
-; Create Tray Menu
-A_TrayMenu.Delete()
-A_TrayMenu.Add("Show Status", ShowStatus)
-A_TrayMenu.Add("Sync Now", SyncNow)
-A_TrayMenu.Add("Open JSON Location", OpenJsonLocation)
-A_TrayMenu.Add("Open Script Location", OpenScriptLocation)
-A_TrayMenu.Add()
-A_TrayMenu.Add("Exit", ExitApp)
-A_TrayMenu.Default := "Show Status"
-
-; Initial sync
-SyncNow()
-
-; Start watching
-SetTimer(CheckForChanges, CheckInterval)
-
-ShowStatus(*) {
-    if FileExist(JsonPath) {
-        FileGetTime(modified, JsonPath, "M")
-        status := "Status: Active`n"
-        status .= "JSON File: " JsonPath "`n"
-        status .= "Last Modified: " modified "`n"
-        status .= "Output Script: " ReplacementsFile
-    } else {
-        status := "Status: Waiting for JSON file`n"
-        status .= "Expected Location: " JsonPath "`n"
-        status .= "`nMake sure iCloud Drive is syncing!"
-    }
-    MsgBox(status, "Text Replacement Sync", "Icon64 T5")
-}
-
-CheckForChanges() {
-    if !FileExist(JsonPath)
-        return
-    
-    FileGetTime(modified, JsonPath, "M")
-    if (modified != LastModified) {
-        LastModified := modified
-        SyncNow()
-    }
-}
-
-SyncNow(*) {
+GenerateReplacements() {
     if !FileExist(JsonPath) {
-        TrayTip("JSON file not found!", "Check iCloud Drive sync", 1)
+        MsgBox("JSON file not found!`n`nExpected: " JsonPath "`n`nMake sure text-replacements.json is in the same folder as this script.", "Error", "Icon16")
         return
     }
     
@@ -88,26 +43,30 @@ SyncNow(*) {
         script .= "#SingleInstance Force`n`n"
         
         ; Add replacements
+        count := 0
         for replacement in data["replacements"] {
             shortcut := replacement["shortcut"]
             phrase := EscapeForAHK(replacement["phrase"])
             script .= "::" shortcut "::" phrase "`n"
+            count++
         }
         
         script .= "`n; Notification`n"
-        script .= "TrayTip('Text Replacements Active', '" data["replacements"].Length " shortcuts loaded', 1)`n"
+        script .= "TrayTip('Text Replacements Active', '" count " shortcuts loaded from Mac', 2)`n"
         
         ; Write script file
-        FileDelete(ReplacementsFile)
+        if FileExist(ReplacementsFile)
+            FileDelete(ReplacementsFile)
         FileAppend(script, ReplacementsFile, "UTF-8")
         
-        ; Reload the replacements script
-        ReloadReplacements()
+        ; Show success message
+        MsgBox("✅ Success!`n`n" count " text replacements generated`n`nOutput: " ReplacementsFile "`n`nThe shortcuts script will now start automatically.", "Text Replacement Sync", "Icon64 T5")
         
-        TrayTip("Synced!", data["replacements"].Length " text replacements updated", 2)
+        ; Start the replacements script
+        Run(ReplacementsFile)
         
     } catch as err {
-        TrayTip("Sync Error", err.Message, 3)
+        MsgBox("Error: " err.Message, "Text Replacement Sync", "Icon16")
     }
 }
 
@@ -118,39 +77,6 @@ EscapeForAHK(text) {
     text := StrReplace(text, "`t", "``t")   ; Tab
     text := StrReplace(text, "`;", "```;")  ; Semicolon
     return text
-}
-
-ReloadReplacements() {
-    ; Close any existing replacements script
-    DetectHiddenWindows(true)
-    try {
-        if WinExist("ahk_exe AutoHotkey64.exe ahk_class AutoHotkey") {
-            WinClose("ahk_exe AutoHotkey64.exe ahk_pid " . ProcessExist("AutoHotkey64.exe"))
-        }
-    }
-    
-    ; Start new instance
-    if FileExist(ReplacementsFile) {
-        Run(ReplacementsFile)
-    }
-}
-
-OpenJsonLocation(*) {
-    if FileExist(JsonPath)
-        Run('explorer.exe /select,"' JsonPath '"')
-    else
-        Run('explorer.exe "' A_MyDocuments '\..\iCloudDrive"')
-}
-
-OpenScriptLocation(*) {
-    if FileExist(ReplacementsFile)
-        Run('explorer.exe /select,"' ReplacementsFile '"')
-    else
-        Run('explorer.exe "' A_MyDocuments '"')
-}
-
-ExitApp(*) {
-    ExitApp()
 }
 
 ; =============================================================================
