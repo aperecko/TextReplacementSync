@@ -27,26 +27,34 @@ GenerateReplacements() {
     try {
         ; Read JSON file
         jsonText := FileRead(JsonPath, "UTF-8")
-        data := JSON.Parse(jsonText)
+        
+        ; Parse JSON using COM (JScript)
+        data := ParseJSON(jsonText)
         
         ; Generate AutoHotkey script
         script := "; ============================================`n"
         script .= "; Auto-generated Text Replacements`n"
         script .= "; Generated: " FormatTime(, "yyyy-MM-dd HH:mm:ss") "`n"
         script .= "; Source: macOS Text Replacements`n"
-        script .= "; Total: " data["replacements"].Length " shortcuts`n"
         script .= "; ============================================`n`n"
         
         script .= "#Requires AutoHotkey v2.0`n"
         script .= "#Hotstring EndChars -()[]{}:;'`"/\,.?!`n`s`t`n"
-        script .= "#Hotstring O`n"  ; Omit ending character
+        script .= "#Hotstring O`n"
         script .= "#SingleInstance Force`n`n"
         
         ; Add replacements
         count := 0
-        for replacement in data["replacements"] {
-            shortcut := replacement["shortcut"]
-            phrase := EscapeForAHK(replacement["phrase"])
+        for replacement in data.replacements {
+            shortcut := replacement.shortcut
+            phrase := replacement.phrase
+            
+            ; Unescape Unicode sequences
+            phrase := UnescapeUnicode(phrase)
+            
+            ; Escape for AutoHotkey
+            phrase := EscapeForAHK(phrase)
+            
             script .= "::" shortcut "::" phrase "`n"
             count++
         }
@@ -70,6 +78,33 @@ GenerateReplacements() {
     }
 }
 
+ParseJSON(json) {
+    ; Use Windows JScript engine to parse JSON
+    sc := ComObject("ScriptControl")
+    sc.Language := "JScript"
+    sc.ExecuteStatement("obj = " json)
+    return sc.Eval("obj")
+}
+
+UnescapeUnicode(text) {
+    ; Convert \Uxxxx format to actual Unicode characters
+    while (pos := InStr(text, "\U")) {
+        hexCode := SubStr(text, pos + 2, 8)
+        if (StrLen(hexCode) >= 4) {
+            charCode := "0x" SubStr(hexCode, 1, 8)
+            try {
+                char := Chr(Integer(charCode))
+                text := SubStr(text, 1, pos - 1) char SubStr(text, pos + 10)
+            } catch {
+                break
+            }
+        } else {
+            break
+        }
+    }
+    return text
+}
+
 EscapeForAHK(text) {
     text := StrReplace(text, "``", "````")  ; Escape backtick
     text := StrReplace(text, "`n", "``n")   ; Line feed
@@ -77,121 +112,4 @@ EscapeForAHK(text) {
     text := StrReplace(text, "`t", "``t")   ; Tab
     text := StrReplace(text, "`;", "```;")  ; Semicolon
     return text
-}
-
-; =============================================================================
-; JSON Parser for AutoHotkey v2
-; =============================================================================
-class JSON {
-    static Parse(jsonStr) {
-        jsonStr := Trim(jsonStr)
-        if (SubStr(jsonStr, 1, 1) = "{")
-            return JSON.ParseObject(jsonStr)
-        else if (SubStr(jsonStr, 1, 1) = "[")
-            return JSON.ParseArray(jsonStr)
-        return ""
-    }
-    
-    static ParseObject(str) {
-        obj := Map()
-        str := Trim(SubStr(str, 2, -1))  ; Remove { }
-        
-        Loop {
-            if (str = "")
-                break
-            
-            ; Parse key
-            keyEnd := InStr(str, '"', , 2)
-            key := SubStr(str, 2, keyEnd - 2)
-            str := Trim(SubStr(str, keyEnd + 1))
-            str := Trim(SubStr(str, InStr(str, ":") + 1))
-            
-            ; Parse value
-            if (SubStr(str, 1, 1) = '"') {
-                valueEnd := InStr(str, '"', , 2)
-                value := SubStr(str, 2, valueEnd - 2)
-                str := Trim(SubStr(str, valueEnd + 1))
-            } else if (SubStr(str, 1, 1) = "{") {
-                braceCount := 0
-                Loop Parse str {
-                    if (A_LoopField = "{")
-                        braceCount++
-                    else if (A_LoopField = "}")
-                        braceCount--
-                    if (braceCount = 0) {
-                        value := JSON.ParseObject(SubStr(str, 1, A_Index))
-                        str := Trim(SubStr(str, A_Index + 1))
-                        break
-                    }
-                }
-            } else if (SubStr(str, 1, 1) = "[") {
-                bracketCount := 0
-                Loop Parse str {
-                    if (A_LoopField = "[")
-                        bracketCount++
-                    else if (A_LoopField = "]")
-                        bracketCount--
-                    if (bracketCount = 0) {
-                        value := JSON.ParseArray(SubStr(str, 1, A_Index))
-                        str := Trim(SubStr(str, A_Index + 1))
-                        break
-                    }
-                }
-            } else {
-                commaPos := InStr(str, ",")
-                bracePos := InStr(str, "}")
-                valueEnd := (commaPos > 0 && commaPos < bracePos) ? commaPos - 1 : bracePos - 1
-                value := Trim(SubStr(str, 1, valueEnd))
-                str := Trim(SubStr(str, valueEnd + 1))
-            }
-            
-            obj[key] := value
-            
-            if (SubStr(str, 1, 1) = ",")
-                str := Trim(SubStr(str, 2))
-            else
-                break
-        }
-        
-        return obj
-    }
-    
-    static ParseArray(str) {
-        arr := []
-        str := Trim(SubStr(str, 2, -1))  ; Remove [ ]
-        
-        Loop {
-            if (str = "")
-                break
-            
-            if (SubStr(str, 1, 1) = "{") {
-                braceCount := 0
-                Loop Parse str {
-                    if (A_LoopField = "{")
-                        braceCount++
-                    else if (A_LoopField = "}")
-                        braceCount--
-                    if (braceCount = 0) {
-                        arr.Push(JSON.ParseObject(SubStr(str, 1, A_Index)))
-                        str := Trim(SubStr(str, A_Index + 1))
-                        break
-                    }
-                }
-            } else {
-                commaPos := InStr(str, ",")
-                bracketPos := InStr(str, "]")
-                valueEnd := (commaPos > 0 && commaPos < bracketPos) ? commaPos - 1 : bracketPos - 1
-                value := Trim(SubStr(str, 1, valueEnd))
-                arr.Push(value)
-                str := Trim(SubStr(str, valueEnd + 1))
-            }
-            
-            if (SubStr(str, 1, 1) = ",")
-                str := Trim(SubStr(str, 2))
-            else
-                break
-        }
-        
-        return arr
-    }
 }
