@@ -26,7 +26,7 @@ GenerateReplacements() {
     
     try {
         ; Use PowerShell to parse JSON (works on all Windows versions)
-        psCommand := 'powershell -NoProfile -Command "$json = Get-Content ''' . JsonPath . ''' -Raw -Encoding UTF8 | ConvertFrom-Json; $json.replacements | ForEach-Object { Write-Output ($_.shortcut + ''|'' + $_.phrase) }"'
+        psCommand := "powershell -NoProfile -Command `"$json = Get-Content '" . JsonPath . "' -Raw -Encoding UTF8 | ConvertFrom-Json; $json.replacements | ForEach-Object { Write-Output ($_.shortcut + '|' + $_.phrase) }`""
         
         replacements := []
         shell := ComObject("WScript.Shell")
